@@ -28,7 +28,7 @@ module.exports = function autoLockOn(dispatch) {
 		const job = model % 100 - 1;
 
 		me.playerId = playerId;
-		enabled = job === 6 && job === 7 ? true : false;
+		enabled = job === 6 || job === 7 ? true : false;
 	});
 
 	/*******************************************************
@@ -98,7 +98,7 @@ module.exports = function autoLockOn(dispatch) {
 	 * 스킬관련
 	 ********************************************************/
 
-	dispatch.hook('C_START_SKILL', 1, event => {
+	dispatch.hook('C_START_SKILL', 1, async event => {
 		if (!enabled) return;
 
 		const skill = event.skill;
@@ -123,14 +123,14 @@ module.exports = function autoLockOn(dispatch) {
 				unk: 0,
 				skill,
 			});
-			sleep(10);
+			await sleep(10);
 			dispatch.toClient('S_CAN_LOCKON_TARGET', 1, {
 				target: sortMembers[i].cid,
 				unk: 0,
 				skill,
 				ok: 1,
 			});
-			sleep(10);
+			await sleep(10);
 		}
 
 		event.skill += 10;
@@ -142,10 +142,9 @@ module.exports = function autoLockOn(dispatch) {
 	 ********************************************************/
 
 	function getDistance(member) {
-		const MAX = CHECK_DISTANCE + 1;
-		let distance = MAX;
+		let distance = CHECK_DISTANCE + 1;
 
-		if (member.hp === 0) return MAX; // 죽었으면
+		if (member.hp === 0) return distance; // 죽었으면
 
 		const x = me.location.x - member.location.x;
 		const y = me.location.y - member.location.y;
@@ -154,7 +153,7 @@ module.exports = function autoLockOn(dispatch) {
 		// √((x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2)
 		distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
 
-		return Math.min(distance, MAX);
+		return Math.min(distance, CHECK_DISTANCE + 1);
 	}
 
 	function sleep(ms) {
