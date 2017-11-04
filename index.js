@@ -10,7 +10,7 @@ const skills = [
 	67198964, // 정령 정화
 ];
 
-const CHECK_DISTANCE = 900; // 35미터
+const CHECK_DISTANCE = 900; // 직선상 30미터
 const CHECK_HP = 0.99; // 기준 이상 피는 무시
 
 module.exports = function autoLockOn(dispatch) {
@@ -151,6 +151,7 @@ module.exports = function autoLockOn(dispatch) {
 		const y = me.location.y - member.location.y;
 		const z = me.location.z - member.location.z;
 
+		// root ( (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2 )
 		distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
 
 		return Math.min(distance, MAX);
