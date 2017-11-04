@@ -118,7 +118,6 @@ module.exports = function autoLockOn(dispatch) {
 
 		// 거리순으로 최대 4명
 		for (let i = 0; i < Math.min(4, sortMembers.length); i++) {
-			sleep(10);
 			dispatch.toServer('C_CAN_LOCKON_TARGET', 1, {
 				target: sortMembers[i].cid,
 				unk: 0,
@@ -131,6 +130,7 @@ module.exports = function autoLockOn(dispatch) {
 				skill,
 				ok: 1,
 			});
+			sleep(10);
 		}
 
 		event.skill += 10;
@@ -151,7 +151,7 @@ module.exports = function autoLockOn(dispatch) {
 		const y = me.location.y - member.location.y;
 		const z = me.location.z - member.location.z;
 
-		// root ( (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2 )
+		// √((x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2)
 		distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
 
 		return Math.min(distance, MAX);
