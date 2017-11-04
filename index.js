@@ -6,20 +6,12 @@
 
 const skills = [
 	67299764, // 사제 힐 IX
-	67159764, // 정령 힐 IX
 	67159864, // 정령 힐 X
 	67198964, // 정령 정화
 ];
 
-const cast = {
-	67299764: 67299774,
-	67159764: 67159774,
-	67159864: 67159874,
-	67198964: 67198974,
-};
-
 const CHECK_DISTANCE = 900; // 최대거리
-const CHECK_HP = 0.99; // 기준 이상 피는 무시
+const CHECK_HP = 1; // 기준 이상 피는 무시
 
 module.exports = function autoLockOn(dispatch) {
 	let enabled = false;
@@ -118,7 +110,7 @@ module.exports = function autoLockOn(dispatch) {
 		// 거리순으로 정렬, 기준거리, 기준HP 필터
 		sortMembers = members
 			.sort((a, b) => getDistance(a) - getDistance(b))
-			.filter(x => getDistance(x) <= CHECK_DISTANCE);
+			.filter(x => getDistance(x) <= CHECK_DISTANCE && x.hp > 0);
 
 		if (skill !== 67198964) {
 			//정화가 아닐경우 HP체크 필터 추가
@@ -128,7 +120,8 @@ module.exports = function autoLockOn(dispatch) {
 		// 해당하는 맴버가 없다면
 		if (sortMembers.length === 0) return;
 
-		await sleep(100);
+		await sleep(100); // 이것 없으면 락온 안잡힘
+
 		// 거리순으로 최대 4명
 		for (let i = 0; i < Math.min(4, sortMembers.length); i++) {
 			dispatch.toServer('C_CAN_LOCKON_TARGET', 1, {
@@ -137,15 +130,6 @@ module.exports = function autoLockOn(dispatch) {
 				skill,
 			});
 		}
-
-		/*
-		await sleep(100);
-		dispatch.toServer(
-			'C_START_SKILL',
-			1,
-			Object.assign(event, { skill: cast[event.skill] })
-		);
-		*/
 	});
 
 	dispatch.hook('C_CAN_LOCKON_TARGET', 1, event => {
