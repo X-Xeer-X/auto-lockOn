@@ -7,10 +7,18 @@
 const skills = [
 	67299764, // 사제 힐 IX
 	67159764, // 정령 힐 IX
+	67159864, // 정령 힐 X
 	67198964, // 정령 정화
 ];
 
-const CHECK_DISTANCE = 900; // 직선상 30미터
+const cast = {
+	67299764: 67299774,
+	67159764: 67159774,
+	67159864: 67159874,
+	67198964: 67198974,
+};
+
+const CHECK_DISTANCE = 900; // 최대거리
 const CHECK_HP = 0.99; // 기준 이상 피는 무시
 
 module.exports = function autoLockOn(dispatch) {
@@ -49,6 +57,7 @@ module.exports = function autoLockOn(dispatch) {
 				hp: 0,
 				cid: member.cid,
 				playerId: member.playerId,
+				location: { x: 0, y: 0, z: 0 },
 			});
 		}
 	});
@@ -113,9 +122,13 @@ module.exports = function autoLockOn(dispatch) {
 
 		if (skill !== 67198964) {
 			//정화가 아닐경우 HP체크 필터 추가
-			sortMembers = sortMembers.filter(x => x.hp <= CHECK_HP);
+			sortMembers = sortMembers.filter(x => x.hp <= CHECK_HP && x.hp > 0);
 		}
 
+		// 해당하는 맴버가 없다면
+		if (sortMembers.length === 0) return;
+
+		await sleep(100);
 		// 거리순으로 최대 4명
 		for (let i = 0; i < Math.min(4, sortMembers.length); i++) {
 			dispatch.toServer('C_CAN_LOCKON_TARGET', 1, {
@@ -123,18 +136,24 @@ module.exports = function autoLockOn(dispatch) {
 				unk: 0,
 				skill,
 			});
-			await sleep(10);
-			dispatch.toClient('S_CAN_LOCKON_TARGET', 1, {
-				target: sortMembers[i].cid,
-				unk: 0,
-				skill,
-				ok: 1,
-			});
-			await sleep(10);
 		}
 
-		event.skill += 10;
-		dispatch.toServer('C_START_SKILL', 1, event);
+		/*
+		await sleep(100);
+		dispatch.toServer(
+			'C_START_SKILL',
+			1,
+			Object.assign(event, { skill: cast[event.skill] })
+		);
+		*/
+	});
+
+	dispatch.hook('C_CAN_LOCKON_TARGET', 1, event => {
+		dispatch.toClient(
+			'S_CAN_LOCKON_TARGET',
+			1,
+			Object.assign({ ok: true }, event)
+		);
 	});
 
 	/*********************************************************
@@ -143,8 +162,6 @@ module.exports = function autoLockOn(dispatch) {
 
 	function getDistance(member) {
 		let distance = CHECK_DISTANCE + 1;
-
-		if (member.hp === 0) return distance; // 죽었으면
 
 		const x = me.location.x - member.location.x;
 		const y = me.location.y - member.location.y;
