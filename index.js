@@ -11,7 +11,7 @@ const skills = [
 ];
 
 const CHECK_DISTANCE = 900; // 최대거리
-const CHECK_HP = 1; // 기준 이상 피는 무시
+const CHECK_HP = 1; // 기준 이상 피는 무시 ( 퍼센트, 1 === 100% )
 
 module.exports = function autoLockOn(dispatch) {
 	let enabled = false;
